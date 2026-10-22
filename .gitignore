@@ -1,0 +1,10 @@
+.env
+*.json
+!package.json
+*.apkg
+.venv/
+__pycache__/
+.idea/
+.pytest_cache/
+*.egg-info/
+service-account.json

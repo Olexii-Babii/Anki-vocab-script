@@ -1,0 +1,36 @@
+name: Daily Anki export
+
+on:
+  schedule:
+    # GitHub cron runs in UTC. 06:00 UTC = 09:00 Kyiv time in summer (UTC+3)
+    # and 08:00 in winter (UTC+2). Runs may be delayed by a few minutes.
+    - cron: "0 6 * * *"
+  workflow_dispatch:
+    inputs:
+      force:
+        description: "Export even if there are fewer words than the threshold"
+        type: boolean
+        default: false
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install .
+      - name: Export
+        env:
+          GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
+          GOOGLE_SHEET_ID: ${{ secrets.GOOGLE_SHEET_ID }}
+          GOOGLE_SHEET_TAB: ${{ vars.GOOGLE_SHEET_TAB }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          MIN_NEW_WORDS: ${{ vars.MIN_NEW_WORDS }}
+          ANKI_DECK_NAME: ${{ vars.ANKI_DECK_NAME }}
+          ANKI_REVERSE_CARDS: ${{ vars.ANKI_REVERSE_CARDS }}
+          NOTIFY_WHEN_NOT_ENOUGH: ${{ vars.NOTIFY_WHEN_NOT_ENOUGH }}
+        run: python -m vocab export ${{ inputs.force && '--force' || '' }}
