@@ -9,7 +9,7 @@ from vocab.telegram import TelegramError
 
 
 def cfg(min_new=3, notify=False):
-    return Config("words", min_new, "English::Vocabulary", False, notify)
+    return Config("words", min_new, "English::Vocabulary", True, "English::Vocabulary (UK → EN)", notify)
 
 
 def make_sheet(n, exported_first=0):
@@ -64,3 +64,10 @@ def test_fills_missing_added_at():
     sheet.read_rows.return_value[0].added_at = ""
     run_export(sheet, cfg(), tg=MagicMock())
     assert sheet.set_column.call_args_list[0].args[:2] == ("added_at", [2])
+
+
+def test_all_resends_exported_words():
+    sheet, tg = make_sheet(3, exported_first=2), MagicMock()
+    assert run_export(sheet, cfg(min_new=10), all_words=True, tg=tg) == 3
+    tg.send_document.assert_called_once()
+    assert exported_calls(sheet)[0][1] == [4]

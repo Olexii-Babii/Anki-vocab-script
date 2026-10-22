@@ -32,5 +32,6 @@ jobs:
           MIN_NEW_WORDS: ${{ vars.MIN_NEW_WORDS }}
           ANKI_DECK_NAME: ${{ vars.ANKI_DECK_NAME }}
           ANKI_REVERSE_CARDS: ${{ vars.ANKI_REVERSE_CARDS }}
+          ANKI_REVERSE_DECK_NAME: ${{ vars.ANKI_REVERSE_DECK_NAME }}
           NOTIFY_WHEN_NOT_ENOUGH: ${{ vars.NOTIFY_WHEN_NOT_ENOUGH }}
         run: python -m vocab export ${{ inputs.force && '--force' || '' }}

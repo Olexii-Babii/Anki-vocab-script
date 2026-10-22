@@ -3,14 +3,16 @@
 Words (English — Ukrainian) live in a Google Sheet. Once a day GitHub Actions checks for new
 (not yet exported) words and, if there are ≥ `MIN_NEW_WORDS`, sends an `.apkg` deck to Telegram.
 
-Card: the front is the English word, the back is the Ukrainian translation
-(`ANKI_REVERSE_CARDS=true` also adds a Ukrainian → English card).
+Each word produces two cards in two separate decks (both in one `.apkg` file):
+- `English::Vocabulary` — front: English word, back: Ukrainian translation;
+- `English::Vocabulary (UK → EN)` — front: Ukrainian, back: English
+  (disable with `ANKI_REVERSE_CARDS=false`).
 
 ## Commands
 
 ```bash
 python -m vocab import-doc [--file words.docx|words.txt] [--dry-run] [--mark-exported] [--export-now]
-python -m vocab export [--force]
+python -m vocab export [--force] [--all]
 ```
 
 - Line format: `word - translation` (also `–`, `—`, `:`, TAB). The first separator wins.
@@ -20,6 +22,8 @@ python -m vocab export [--force]
   `import-doc` adds nothing, and in Anki the same pair always updates the same card.
 - `export` sets `exported_at` **only after** the file was successfully sent to Telegram.
   An empty `added_at` in manually added rows is filled in automatically.
+- `export --all` re-sends every word (e.g. to get UK → EN cards for words exported earlier).
+  Existing EN → UK cards are updated, not duplicated.
 
 ## Setup
 
@@ -58,7 +62,7 @@ If some of the words are already in Anki, use `import-doc --mark-exported`.
 ### 5. GitHub Actions
 Settings → Secrets and variables → Actions:
 - **Secrets:** `GOOGLE_SERVICE_ACCOUNT_JSON`, `GOOGLE_SHEET_ID`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`.
-- **Variables** (optional): `MIN_NEW_WORDS`, `ANKI_DECK_NAME`, `ANKI_REVERSE_CARDS`, `NOTIFY_WHEN_NOT_ENOUGH`, `GOOGLE_SHEET_TAB`.
+- **Variables** (optional): `MIN_NEW_WORDS`, `ANKI_DECK_NAME`, `ANKI_REVERSE_CARDS`, `ANKI_REVERSE_DECK_NAME`, `NOTIFY_WHEN_NOT_ENOUGH`, `GOOGLE_SHEET_TAB`.
 
 To test: Actions → *Daily Anki export* → Run workflow (optionally with `force`).
 Runs daily at 06:00 UTC (09:00 Kyiv time in summer, 08:00 in winter).
@@ -73,7 +77,7 @@ Runs daily at 06:00 UTC (09:00 Kyiv time in summer, 08:00 in winter).
   "stream did not contain valid UTF-8".)
 - **iPhone (AnkiMobile):** in Telegram → Share → Anki.
 
-Every file is imported into the same `English::Vocabulary` deck; re-importing does not create duplicates.
+Every file is imported into the same two decks; re-importing does not create duplicates.
 
 ## Environment variables
 | Variable | Default |
@@ -83,5 +87,6 @@ Every file is imported into the same `English::Vocabulary` deck; re-importing do
 | `GOOGLE_SHEET_TAB` | `words` |
 | `MIN_NEW_WORDS` | `10` |
 | `ANKI_DECK_NAME` | `English::Vocabulary` |
-| `ANKI_REVERSE_CARDS` | `false` |
+| `ANKI_REVERSE_CARDS` | `true` |
+| `ANKI_REVERSE_DECK_NAME` | `English::Vocabulary (UK → EN)` |
 | `NOTIFY_WHEN_NOT_ENOUGH` | `false` |

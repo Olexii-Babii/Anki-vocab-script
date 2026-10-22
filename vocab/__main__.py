@@ -50,7 +50,7 @@ def cmd_export(args, cfg: config.Config) -> None:
     from . import sheets
     from .exporter import run_export
 
-    run_export(sheets.open_sheet(cfg.sheet_tab), cfg, force=args.force)
+    run_export(sheets.open_sheet(cfg.sheet_tab), cfg, force=args.force, all_words=getattr(args, "all", False))
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -66,6 +66,7 @@ def main(argv: list[str] | None = None) -> int:
 
     exp = sub.add_parser("export", help="build a deck from new words and send it to Telegram")
     exp.add_argument("--force", action="store_true", help="export even below the threshold")
+    exp.add_argument("--all", action="store_true", help="re-send all words, including already exported ones")
 
     args = parser.parse_args(argv)
     try:

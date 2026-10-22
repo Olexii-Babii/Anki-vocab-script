@@ -19,7 +19,8 @@ def caption(rows: list[Row]) -> str:
     return "\n".join(lines)
 
 
-def run_export(sheet, cfg: Config, force: bool = False, tg=telegram) -> int:
+def run_export(sheet, cfg: Config, force: bool = False, all_words: bool = False, tg=telegram) -> int:
+    """all_words: re-send every word (e.g. to add UK → EN cards for already exported ones)."""
     rows = sheet.read_rows()
     today = date.today().isoformat()
 
@@ -28,18 +29,19 @@ def run_export(sheet, cfg: Config, force: bool = False, tg=telegram) -> int:
         sheet.set_column("added_at", missing_added, today)
 
     new = [r for r in rows if not r.exported_at and r.word and r.translation]
-    cards_count = len({anki.note_guid(r.word, r.translation) for r in new})
+    selected = [r for r in rows if r.word and r.translation] if all_words else new
+    cards_count = len({anki.note_guid(r.word, r.translation) for r in selected})
     log.info("New words: %d (threshold %d)", cards_count, cfg.min_new_words)
 
-    if cards_count == 0 or (cards_count < cfg.min_new_words and not force):
+    if cards_count == 0 or (cards_count < cfg.min_new_words and not (force or all_words)):
         if cfg.notify_when_not_enough:
             tg.send_message(f"New words: {cards_count}/{cfg.min_new_words}")
         return 0
 
-    cards = [anki.Card(r.word, r.translation, r.example) for r in new]
+    cards = [anki.Card(r.word, r.translation, r.example) for r in selected]
     with tempfile.TemporaryDirectory() as tmp:
-        path = anki.write_apkg(cards, cfg.deck_name, cfg.reverse_cards, tmp)
-        tg.send_document(Path(path), caption(new))
+        path = anki.write_apkg(cards, cfg.deck_name, cfg.reverse_deck_name if cfg.reverse_cards else None, tmp)
+        tg.send_document(Path(path), caption(selected))
 
     sheet.set_column("exported_at", [r.row_no for r in new], today)
     log.info("Exported %d words", cards_count)

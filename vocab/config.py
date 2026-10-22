@@ -28,6 +28,7 @@ class Config:
     min_new_words: int
     deck_name: str
     reverse_cards: bool
+    reverse_deck_name: str
     notify_when_not_enough: bool
 
 
@@ -41,6 +42,7 @@ def load() -> Config:
         sheet_tab=os.getenv("GOOGLE_SHEET_TAB") or "words",
         min_new_words=min_new,
         deck_name=os.getenv("ANKI_DECK_NAME") or "English::Vocabulary",
-        reverse_cards=_bool("ANKI_REVERSE_CARDS", False),
+        reverse_cards=_bool("ANKI_REVERSE_CARDS", True),
+        reverse_deck_name=os.getenv("ANKI_REVERSE_DECK_NAME") or "English::Vocabulary (UK → EN)",
         notify_when_not_enough=_bool("NOTIFY_WHEN_NOT_ENOUGH", False),
     )
