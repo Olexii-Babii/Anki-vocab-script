@@ -4,7 +4,7 @@ on:
   schedule:
     # GitHub cron runs in UTC. 06:00 UTC = 09:00 Kyiv time in summer (UTC+3)
     # and 08:00 in winter (UTC+2). Runs may be delayed by a few minutes.
-    - cron: "0 6 * * *"
+    - cron: "0 18 * * *"
   workflow_dispatch:
     inputs:
       force:
